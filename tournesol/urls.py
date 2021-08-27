@@ -9,6 +9,7 @@ from rest_framework import routers
 
 from tournesol.views.video_rate_later import VideoRateLaterDetail, VideoRateLaterList
 from tournesol.views.video import VideoViewSet
+from tournesol.views.ratings import ContributorRatingViewSet
 
 from .views import ComparisonViewSet
 
@@ -30,5 +31,15 @@ urlpatterns = [
         "users/<str:username>/video_rate_later/<str:video_id>/",
         VideoRateLaterDetail.as_view(),
         name="video_rate_later_detail",
+    ),
+    path(
+        "users/<str:username>/contributor_ratings/",
+        ContributorRatingViewSet.list(),
+        name="contributor_rating_list",
+    ),
+    path(
+        "users/<str:username>/contributor_ratings/<str:video_id>/",
+        ContributorRatingViewSet.retrieve(),
+        name="contributor_rating_detail",
     )
 ]
