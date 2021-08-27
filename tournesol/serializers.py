@@ -7,6 +7,7 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import Comparison, ComparisonCriteriaScore, Video, VideoRateLater, VideoCriteriaScore
 from .models import ContributorRating
 
+
 class VideoSerializer(ModelSerializer):
     class Meta:
         model = Video
