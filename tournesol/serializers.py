@@ -4,8 +4,8 @@ Serializer used by Tournesol's API
 
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from .models import Comparison, ComparisonCriteriaScore, Video, VideoRateLater, VideoCriteriaScore, ContributorRating
-
+from .models import Comparison, ComparisonCriteriaScore, Video, VideoRateLater, VideoCriteriaScore
+from .models import ContributorRating
 
 class VideoSerializer(ModelSerializer):
     class Meta:
@@ -72,10 +72,10 @@ class ComparisonSerializerInverse(ModelSerializer):
         """Returns serialized second video of the comparison"""
         return VideoSerializer(obj.video_1).data
 
+
 class ContributorRatingSerializer(ModelSerializer):
     video = VideoSerializer()
 
     class Meta:
         model = ContributorRating
         exclude = ["id"]
-    
