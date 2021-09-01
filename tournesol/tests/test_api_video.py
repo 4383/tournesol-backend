@@ -1,15 +1,87 @@
 from django.test import TestCase
+from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from tournesol.models import Video
+from ..models import Video
 
 
 class VideoApi(TestCase):
     """
-    TestCase of the Video API.
-
+    TestCase of the video API.
     """
+
+    _video_id_01 = "video_id_01"
+    _video_id_02 = "video_id_02"
+    _video_id_03 = "video_id_03"
+    _video_id_04 = "video_id_04"
+    _list_of_videos = []
+
+    def setUp(self):
+        self._list_of_videos = Video.objects.bulk_create([
+            Video(video_id=self._video_id_01, name=self._video_id_01),
+            Video(video_id=self._video_id_02, name=self._video_id_02),
+            Video(video_id=self._video_id_03, name=self._video_id_03),
+            Video(video_id=self._video_id_04, name=self._video_id_04)
+        ])
+
+    def test_anonymous_can_list(self):
+        """
+        An anonymous user can list all videos.
+
+        The current implementation is a minimal one that doesn't check the
+        order of the videos in the response yet, but it performs several tests
+        ensuring the API returns the expected videos given the parameters
+        provided.
+
+        TODO: test the order of the returned list
+        """
+        client = APIClient()
+
+        # test a request without query parameters
+        response = client.get(
+            reverse("tournesol:video-list"), format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        returned_video_ids = [video["video_id"] for video in response.data["results"]]
+        existing_video_ids = [video.video_id for video in self._list_of_videos]
+
+        self.assertEqual(set(returned_video_ids), set(existing_video_ids))
+        self.assertEqual(response.data["count"], len(self._list_of_videos))
+        self.assertEqual(len(response.data["results"]), len(self._list_of_videos))
+
+        # test a request with the limit query parameter
+        limit = 2
+        response = client.get(
+            reverse("tournesol:video-list"), {"limit": limit}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # TODO
+        # contrary to the rest of the API, the count field doesn't contain the
+        # number of returned videos but rather the total number of videos in
+        # the database. since the behaviour is currently unique, I'm not sure
+        # if it's a bug or feature...
+        # if we want to return the total number of videos, maybe we could use
+        # `total` as a field name here instead of `count`, to keep a coherence
+        # between API responses?
+        #
+        # self.assertEqual(response.data["count"], limit)
+
+        self.assertEqual(len(response.data["results"]), limit)
+
+        # test that a huge limit doesn't break anything
+        limit = 10000
+        response = client.get(
+            reverse("tournesol:video-list"), {"limit": limit}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(set(returned_video_ids), set(existing_video_ids))
+        self.assertEqual(response.data["count"], len(self._list_of_videos))
+        self.assertEqual(len(response.data["results"]), len(self._list_of_videos))
 
     def test_upload_video_without_API_key(self):
         factory = APIClient()
