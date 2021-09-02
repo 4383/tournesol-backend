@@ -34,8 +34,6 @@ class VideoApi(TestCase):
         order of the videos in the response yet, but it performs several tests
         ensuring the API returns the expected videos given the parameters
         provided.
-
-        TODO: test the order of the returned list
         """
         client = APIClient()
 
@@ -58,18 +56,7 @@ class VideoApi(TestCase):
             reverse("tournesol:video-list"), {"limit": limit}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # TODO
-        # contrary to the rest of the API, the count field doesn't contain the
-        # number of returned videos but rather the total number of videos in
-        # the database. since the behaviour is currently unique, I'm not sure
-        # if it's a bug or feature...
-        # if we want to return the total number of videos, maybe we could use
-        # `total` as a field name here instead of `count`, to keep a coherence
-        # between API responses?
-        #
-        # self.assertEqual(response.data["count"], limit)
-
+        self.assertEqual(response.data["count"], len(self._list_of_videos))
         self.assertEqual(len(response.data["results"]), limit)
 
         # test that a huge limit doesn't break anything
@@ -78,6 +65,8 @@ class VideoApi(TestCase):
             reverse("tournesol:video-list"), {"limit": limit}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        returned_video_ids = [video["video_id"] for video in response.data["results"]]
 
         self.assertEqual(set(returned_video_ids), set(existing_video_ids))
         self.assertEqual(response.data["count"], len(self._list_of_videos))
